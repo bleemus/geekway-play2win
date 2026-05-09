@@ -4,10 +4,13 @@
   "description": "Sortable static-site index of the Geekway 2026 Prime Play & Win lineup",
   "private": true,
   "type": "module",
+  "engines": {
+    "node": ">=20"
+  },
   "scripts": {
     "dev": "serve public -p 3000",
     "refresh": "node parse-bgg-csv.mjs",
-    "deploy": "set -a && . ./.env.local && set +a && swa deploy public --env production --deployment-token \"$SWA_CLI_DEPLOYMENT_TOKEN\""
+    "deploy": "set -a && . ./.env.local && set +a && swa deploy public --env production --api-language node --api-version 20 --deployment-token \"$SWA_CLI_DEPLOYMENT_TOKEN\""
   },
   "devDependencies": {
     "@azure/static-web-apps-cli": "^2.0.0",
