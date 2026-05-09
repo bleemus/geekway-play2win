@@ -1,0 +1,48 @@
+# Dependencies
+node_modules/
+
+# Build & cache
+.swa/
+.cache/
+dist/
+build/
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Environment files (may contain secrets)
+.env
+.env.local
+.env.*.local
+
+# Local tooling/config
+.claude/
+swa-cli.config.json
+
+# Source data — drop CSV exports here for `npm run refresh`,
+# but don't commit them (they may include personal BGG account info).
+list.csv
+*.csv
+
+# OS junk
+.DS_Store
+.AppleDouble
+.LSOverride
+Thumbs.db
+desktop.ini
+ehthumbs.db
+
+# Editors / IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+*.swn
+*~
+*.bak
+*.tmp
+.history/

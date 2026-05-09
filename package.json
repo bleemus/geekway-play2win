@@ -1,0 +1,20 @@
+{
+  "name": "geekway2026-pnw",
+  "version": "1.0.0",
+  "description": "Sortable static-site index of the Geekway 2026 Prime Play & Win lineup",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "serve public -p 3000",
+    "refresh": "node parse-bgg-csv.mjs",
+    "deploy": "set -a && . ./.env.local && set +a && swa deploy public --env production --deployment-token \"$SWA_CLI_DEPLOYMENT_TOKEN\""
+  },
+  "devDependencies": {
+    "@azure/static-web-apps-cli": "^2.0.0",
+    "serve": "^14.2.4"
+  },
+  "overrides": {
+    "rimraf": "^5",
+    "glob": "^11"
+  }
+}
