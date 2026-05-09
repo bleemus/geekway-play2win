@@ -3,12 +3,20 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Geekway 2026 Prime — P&amp;W Index</title>
+<title>Geekway 2026 P&amp;W Index</title>
 <meta name="description" content="Sortable table of the games on the Play and Win shelves at Geekway Prime 2026, with player counts, weight, playtime, and BGG ratings.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Geist+Mono:wght@400;500&family=Geist:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="styles.css">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icon.svg">
+<meta name="theme-color" content="#0d9488">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="P&amp;W Index">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 </head>
 <body>
 <div class="page">
@@ -16,116 +24,147 @@
     <p class="kicker"><span class="dot"></span> Geekway 2026 / Prime</p>
     <h1>Play &amp; Win Index</h1>
     <p class="sub">Sortable lineup. Source <a href="https://boardgamegeek.com/geeklist/358871/geekway-2026-prime-pnw-lineup" target="_blank" rel="noopener">geeklist 358871</a>.</p>
+    <button type="button" class="btn icon-btn theme-btn-header" id="themeBtn" aria-label="Toggle theme" title="Toggle light/dark">🌙</button>
   </header>
 
+  <details class="filter-panel" id="filterPanel">
+    <summary class="filter-panel-summary">
+      <span class="filter-panel-title">
+        <span class="filter-chevron" aria-hidden="true">▾</span>
+        Filters
+      </span>
+      <span class="filter-active-badge" id="filterBadge" hidden></span>
+    </summary>
+    <div class="filters">
+      <div class="chip-group" data-name="players">
+        <span class="chip-label">Players</span>
+        <button type="button" class="chip" data-v="1">1</button>
+        <button type="button" class="chip" data-v="2">2</button>
+        <button type="button" class="chip" data-v="3">3</button>
+        <button type="button" class="chip" data-v="4">4</button>
+        <button type="button" class="chip" data-v="5">5</button>
+        <button type="button" class="chip" data-v="6">6+</button>
+        <label class="chip-best"><input type="checkbox" id="bestOnly"> Best at this count</label>
+      </div>
+      <div class="chip-group" data-name="weight">
+        <span class="chip-label">Weight</span>
+        <button type="button" class="chip" data-v="light">Light (&lt;2)</button>
+        <button type="button" class="chip" data-v="med">Medium (2–3)</button>
+        <button type="button" class="chip" data-v="heavy">Heavy (&gt;3)</button>
+      </div>
+      <div class="chip-group" data-name="timeMax">
+        <span class="chip-label">Time</span>
+        <button type="button" class="chip" data-v="30">≤30 min</button>
+        <button type="button" class="chip" data-v="60">≤60 min</button>
+        <button type="button" class="chip" data-v="90">≤90 min</button>
+        <button type="button" class="chip" data-v="120">≤2 hr</button>
+      </div>
+      <div class="chip-group" data-name="minRating">
+        <span class="chip-label">Rating</span>
+        <select id="ratingField" class="inline-select" aria-label="Which rating to filter by">
+          <option value="a">Avg</option>
+          <option value="g">Geek</option>
+        </select>
+        <button type="button" class="chip" data-v="6">6+</button>
+        <button type="button" class="chip" data-v="6.5">6.5+</button>
+        <button type="button" class="chip" data-v="7">7+</button>
+        <button type="button" class="chip" data-v="7.5">7.5+</button>
+        <button type="button" class="chip" data-v="8">8+</button>
+      </div>
+      <div class="chip-group" data-name="tags">
+        <span class="chip-label">Shortlist</span>
+        <button type="button" class="chip" data-tag="want">♥ Wishlist</button>
+        <button type="button" class="chip" data-tag="played">✓ Played</button>
+        <button type="button" class="chip" data-tag="unplayed">✗ Unplayed</button>
+      </div>
+
+      <!-- MECHANICS FILTER -->
+      <div class="chip-group" data-name="mechanics">
+        <span class="chip-label">Mechanics</span>
+        <div class="multi-select" id="mechanicSelect">
+          <input type="text" id="mechanicInput" class="multi-input" placeholder="Search mechanics…" autocomplete="off" aria-label="Search mechanics" aria-autocomplete="list" aria-controls="mechanicDropdown">
+          <div class="multi-dropdown" id="mechanicDropdown" hidden role="listbox"></div>
+        </div>
+        <button type="button" class="chip mode-toggle" id="mechanicMode" title="Toggle OR / AND matching">OR</button>
+      </div>
+
+      <!-- CATEGORIES FILTER -->
+      <div class="chip-group" data-name="categories">
+        <span class="chip-label">Categories</span>
+        <div class="multi-select" id="categorySelect">
+          <input type="text" id="categoryInput" class="multi-input" placeholder="Search categories…" autocomplete="off" aria-label="Search categories" aria-autocomplete="list" aria-controls="categoryDropdown">
+          <div class="multi-dropdown" id="categoryDropdown" hidden role="listbox"></div>
+        </div>
+        <button type="button" class="chip mode-toggle" id="categoryMode" title="Toggle OR / AND matching">OR</button>
+      </div>
+
+      <!-- HIDE UNRANKED + SORT (always visible, was previously scattered) -->
+      <div class="chip-group filter-row-bottom">
+        <span class="chip-label">Options</span>
+        <label class="chip-best"><input type="checkbox" id="hideUnranked"> Hide unranked</label>
+      </div>
+
+      <div class="chip-group filter-row-sort">
+        <span class="chip-label">Sort</span>
+        <div class="sort-dd" id="sortDd">
+          <button type="button" class="sort-dd-trigger" id="sortDdBtn" aria-haspopup="listbox" aria-expanded="false">
+            <span class="sort-dd-text" id="sortDdText">Avg rating</span>
+            <span class="sort-dd-caret" aria-hidden="true">▾</span>
+          </button>
+          <ul class="sort-dd-menu" id="sortDdMenu" role="listbox" hidden>
+            <li role="option" data-k="n">Game</li>
+            <li role="option" data-k="tags">My list</li>
+            <li role="option" data-k="rank">Rank</li>
+            <li role="option" data-k="pmn">Players</li>
+            <li role="option" data-k="ob">Best at</li>
+            <li role="option" data-k="or">Recommended</li>
+            <li role="option" data-k="w">Weight</li>
+            <li role="option" data-k="tmn">Time</li>
+            <li role="option" data-k="a">Avg rating</li>
+            <li role="option" data-k="g">Geek rating</li>
+            <li role="option" data-k="v">Votes</li>
+          </ul>
+        </div>
+        <button type="button" class="btn sort-dir-chip" id="sortDirBtn">▼</button>
+      </div>
+    </div>
+  </details>
+
   <div class="controls">
-    <input type="text" id="search" placeholder="Filter by name… (press /)" autocomplete="off">
-    <label><input type="checkbox" id="hideUnranked"> Hide unranked</label>
+    <input type="text" id="search" placeholder="Filter by name…" autocomplete="off">
     <span class="meta" id="count"></span>
-    <button type="button" class="btn" id="pickBtn" title="Pick a random game from this list (r)">🎲 Pick</button>
-    <button type="button" class="btn icon-btn" id="viewModeBtn" aria-label="Toggle desktop view" title="Toggle desktop view">⤢</button>
-    <button type="button" class="btn icon-btn" id="themeBtn" aria-label="Toggle theme" title="Toggle light/dark">🌙</button>
-  </div>
-
-  <div class="filters">
-    <div class="chip-group" data-name="players">
-      <span class="chip-label">Players</span>
-      <button type="button" class="chip" data-v="1">1</button>
-      <button type="button" class="chip" data-v="2">2</button>
-      <button type="button" class="chip" data-v="3">3</button>
-      <button type="button" class="chip" data-v="4">4</button>
-      <button type="button" class="chip" data-v="5">5</button>
-      <button type="button" class="chip" data-v="6">6+</button>
-      <label class="chip-best"><input type="checkbox" id="bestOnly"> Best at this count</label>
-    </div>
-    <div class="chip-group" data-name="weight">
-      <span class="chip-label">Weight</span>
-      <button type="button" class="chip" data-v="light">Light (&lt;2)</button>
-      <button type="button" class="chip" data-v="med">Medium (2–3)</button>
-      <button type="button" class="chip" data-v="heavy">Heavy (&gt;3)</button>
-    </div>
-    <div class="chip-group" data-name="timeMax">
-      <span class="chip-label">Time</span>
-      <button type="button" class="chip" data-v="30">≤30 min</button>
-      <button type="button" class="chip" data-v="60">≤60 min</button>
-      <button type="button" class="chip" data-v="90">≤90 min</button>
-      <button type="button" class="chip" data-v="120">≤2 hr</button>
-    </div>
-    <div class="chip-group" data-name="minRating">
-      <span class="chip-label">Rating</span>
-      <select id="ratingField" class="inline-select" aria-label="Which rating to filter by">
-        <option value="h">Hybrid</option>
-        <option value="a">Avg</option>
-        <option value="g">Geek</option>
-      </select>
-      <button type="button" class="chip" data-v="6">6+</button>
-      <button type="button" class="chip" data-v="6.5">6.5+</button>
-      <button type="button" class="chip" data-v="7">7+</button>
-      <button type="button" class="chip" data-v="7.5">7.5+</button>
-      <button type="button" class="chip" data-v="8">8+</button>
-    </div>
-    <div class="chip-group" data-name="tags">
-      <span class="chip-label">Shortlist</span>
-      <button type="button" class="chip" data-tag="want">♥ Wishlist</button>
-      <button type="button" class="chip" data-tag="played">✓ Played</button>
-    </div>
-  </div>
-
-  <div class="sort-mobile">
-    <span class="sort-mobile-label">Sort by</span>
-    <div class="sort-dd" id="sortDd">
-      <button type="button" class="sort-dd-trigger" id="sortDdBtn" aria-haspopup="listbox" aria-expanded="false">
-        <span class="sort-dd-text" id="sortDdText">Hybrid</span>
-        <span class="sort-dd-caret" aria-hidden="true">▾</span>
-      </button>
-      <ul class="sort-dd-menu" id="sortDdMenu" role="listbox" hidden>
-        <li role="option" data-k="n">Game</li>
-        <li role="option" data-k="tags">My list</li>
-        <li role="option" data-k="pmn">Min players</li>
-        <li role="option" data-k="pmx">Max players</li>
-        <li role="option" data-k="ob">Best</li>
-        <li role="option" data-k="or">Recommended</li>
-        <li role="option" data-k="w">Weight</li>
-        <li role="option" data-k="tmn">Min time</li>
-        <li role="option" data-k="tmx">Max time</li>
-        <li role="option" data-k="a">Avg</li>
-        <li role="option" data-k="g">Geek</li>
-        <li role="option" data-k="h">Hybrid</li>
-        <li role="option" data-k="v">Votes</li>
-      </ul>
-    </div>
-    <button type="button" id="sortDirBtn" aria-label="Toggle sort direction">▼</button>
+    <button type="button" class="btn icon-btn pick-icon-btn" id="pickBtn" title="Pick a random game (r)" aria-label="Pick a random game">🎲</button>
   </div>
 
   <div class="tbl-wrap">
-    <table>
+    <table id="gamesTable">
       <thead>
         <tr>
           <th data-k="n">Game <span class="arrow">▲</span></th>
-          <th data-k="tags" class="ctr">List <span class="arrow">▲</span></th>
-          <th data-k="pmn" class="ctr">Min plr <span class="arrow">▲</span></th>
-          <th data-k="pmx" class="ctr">Max plr <span class="arrow">▲</span></th>
-          <th data-k="ob" class="ctr">Best <span class="arrow">▲</span></th>
-          <th data-k="or" class="ctr">Rec <span class="arrow">▲</span></th>
-          <th data-k="w" class="num">Weight <span class="arrow">▲</span></th>
-          <th data-k="tmn" class="num">Min time <span class="arrow">▲</span></th>
-          <th data-k="tmx" class="num">Max time <span class="arrow">▲</span></th>
-          <th data-k="a" class="num">Avg <span class="arrow">▲</span></th>
-          <th data-k="g" class="num">Geek <span class="arrow">▲</span></th>
-          <th data-k="h" class="num active">Hybrid <span class="arrow">▼</span></th>
-          <th data-k="v" class="num">Votes <span class="arrow">▲</span></th>
+          <th>My list</th>
+          <th class="ctr" data-k="ob">Best <span class="arrow">▲</span></th>
+          <th class="ctr" data-k="pmn">Players <span class="arrow">▲</span></th>
+          <th class="ctr" data-k="or">Rec <span class="arrow">▲</span></th>
+          <th class="num" data-k="w">Weight <span class="arrow">▲</span></th>
+          <th class="num" data-k="tmn">Time <span class="arrow">▲</span></th>
+          <th class="ctr rating-group-start" data-k="a"><span class="rating-label-collapsed">Rating</span><span class="rating-label-expanded">Avg</span> <span class="arrow">▼</span> <button type="button" class="rating-expand-btn" id="ratingExpandBtn" title="Expand to show Geek rating and vote count">+</button></th>
+          <th class="num rating-detail" data-k="g">Geek <span class="arrow">▲</span></th>
+          <th class="num rating-detail rating-group-end" data-k="v">Votes <span class="arrow">▲</span></th>
+          <th id="rankTh" class="num" data-k="rank">Rank <span class="arrow">▲</span> <button type="button" class="rating-expand-btn" id="addRankColBtn" title="Add a category rank column">+</button>
+            <ul id="rankColPicker" class="rank-col-picker" hidden role="listbox"></ul>
+          </th>
         </tr>
       </thead>
-      <tbody id="tbody"><tr><td colspan="13" class="loading">Loading…</td></tr></tbody>
+      <tbody id="tbody">
+        <tr><td colspan="11" class="loading">Loading…</td></tr>
+      </tbody>
     </table>
   </div>
 
   <footer>
-    <p>Hybrid = (Avg + Geek) / 2. Games where BGG hasn't issued a Geek rating yet (too few votes) show <span class="dim">—</span>. Click a game to open its BGG page. Tap a card on mobile to expand. Shortcuts: <kbd>/</kbd> search · <kbd>Esc</kbd> clear · <kbd>r</kbd> pick.</p>
-    <p class="updated" id="updated"></p>
+    <p class="footer-text">Data from <a href="https://boardgamegeek.com" target="_blank" rel="noopener">BoardGameGeek</a>. <span id="updated"></span></p>
   </footer>
 </div>
-
 <script src="app.js"></script>
 </body>
 </html>
