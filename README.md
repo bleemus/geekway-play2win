@@ -6,9 +6,12 @@ Single-page static site — no framework, no bundler, no build step. Deploys to 
 
 ## Features
 
-- Sort and filter by player count, weight, playtime, rating, "best at N" optimal counts, and personal wishlist / played tags.
-- Filter state survives reload (localStorage) and is shareable via URL.
-- Mobile-friendly card layout with tap-to-expand details, plus a "desktop view" override.
+- Sort and filter by player count, weight, playtime, rating, BGG rank, sub-category ranks (Strategy, Family, etc.), "best at N" optimal counts, mechanics, categories, and personal wishlist / played tags.
+- Mechanics and categories use searchable multi-select dropdowns with OR / AND mode toggle.
+- Filter state survives reload (localStorage) and is shareable via URL. Active filters shown as a badge; one-click reset.
+- Mobile card layout: cover image + mini stats grid when collapsed; tap to expand full details (rec. players, mechanics, categories, rank breakdown).
+- Cover-image tooltip on hover; sub-rank breakdown tooltip on BGG rank cell.
+- Installable as a PWA — service worker (cache-first + background refresh), web app manifest, home-screen icons.
 - Dark / light theme that follows your system or can be toggled manually.
 - Random-pick button (`r`), `/` to focus search, `Esc` to clear.
 
@@ -21,13 +24,26 @@ npm run dev            # http://localhost:3000
 
 ## Refreshing the data
 
+### 1. Base stats from BGG CSV
+
 Export the geeklist as CSV from BGG (e.g. with [BGG1Tool](https://boardgamegeek.com/wiki/page/BGG1Tool)) and run:
 
 ```bash
 npm run refresh -- /path/to/export.csv
 ```
 
-That regenerates `public/games.json`. Commit + push (CI deploy) or run `npm run deploy` to update the live site.
+This regenerates `public/games.json` with base stats (player counts, playtime, ratings, poll data).
+
+### 2. Enriched data from the BGG API
+
+```bash
+node scripts/enrich-from-bgg.js             # fetch + merge (slow — rate-limited)
+node scripts/enrich-from-bgg.js --merge-only  # skip fetching, rebuild from cache
+```
+
+This adds sub-category ranks, mechanics, categories, thumbnail URLs, designers, year, and age rating. API responses are cached in `scripts/.bgg-cache/` so the script can be interrupted and resumed. Also produces `public/mechanics.json` and `public/categories.json`.
+
+Commit + push (CI deploy) or `npm run deploy` to update the live site.
 
 ## Deploying
 
@@ -55,9 +71,17 @@ public/                                  what gets deployed
   index.html                             page markup
   app.js                                 fetch, sort, filter, render, state
   styles.css                             all styling
-  games.json                             game data
+  games.json                             game data (base + enriched)
+  mechanics.json                         mechanic id→name map
+  categories.json                        category id→name map
+  sw.js                                  service worker (cache-first + refresh)
+  manifest.json                          PWA web app manifest
+  icon.svg / icon-192.png / icon-512.png app icons
   staticwebapp.config.json               Azure SWA routing/headers
-parse-bgg-csv.mjs                        BGG CSV → games.json
+scripts/
+  enrich-from-bgg.js                     BGG API enrichment (ranks, mechanics, etc.)
+  .bgg-cache/                            per-game API response cache (gitignored)
+parse-bgg-csv.mjs                        BGG CSV → games.json (base stats)
 .github/workflows/
   azure-static-web-apps.yml              CI deploy on push to main
 .env.local.example                       template for the SWA CLI token
@@ -83,11 +107,18 @@ CLAUDE.md                                project context for Claude Code
   "maxTime": 160,
   "avgRating": 8.42,
   "geekRating": 8.03,
-  "votes": 19245
+  "votes": 19245,
+  "bggRank": 14,
+  "subRanks": { "strategy": 7, "thematic": null },
+  "mechanics": [2023, 2664],
+  "categories": [1021],
+  "thumbnail": "https://cf.geekdo-images.com/...",
+  "yearPublished": 2023,
+  "designers": ["David Turczi"]
 }
 ```
 
-`bestPlayers` is always a subset of `recommendedPlayers` — a count is "best" only if the BGG community-poll winner for that count was "Best", and a count is "recommended" if the winner was either "Best" or "Recommended". `geekRating` is `0` for games BGG hasn't issued a Bayesian rating for yet.
+`bestPlayers` is always a subset of `recommendedPlayers` — a count is "best" only if the BGG community-poll winner for that count was "Best", and a count is "recommended" if the winner was either "Best" or "Recommended". `geekRating` is `0` for games BGG hasn't issued a Bayesian rating for yet. The enriched fields (`bggRank`, `subRanks`, `mechanics`, etc.) are added by `scripts/enrich-from-bgg.js` and absent if the enrichment script hasn't been run.
 
 ## License
 

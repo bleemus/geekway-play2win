@@ -89,8 +89,8 @@ function optimal(row) {
 const games = rows.slice(1).filter(r => r.length > 1 && r[idx('id')]).map(r => {
   const minP = parseInt(r[idx('minplayers')], 10);
   const maxP = parseInt(r[idx('maxplayers')], 10);
-  const minT = parseInt(r[idx('minplaytime')], 10);
-  const maxT = parseInt(r[idx('maxplaytime')], 10);
+  const minT = parseInt(r[idx('minplaytime')], 10) || 0;
+  const maxT = parseInt(r[idx('maxplaytime')], 10) || minT; // BGG sometimes omits maxplaytime (0)
   const { best, rec } = optimal(r);
   return {
     id: parseInt(r[idx('id')], 10),
