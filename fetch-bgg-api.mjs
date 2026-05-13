@@ -279,5 +279,6 @@ for (let bi = 0; bi < batches.length; bi++) {
 // Sort by name for stable output
 games.sort((a, b) => a.name.localeCompare(b.name));
 
-writeFileSync(OUT, JSON.stringify(games));
+const output = { lastUpdated: new Date().toISOString(), games };
+writeFileSync(OUT, JSON.stringify(output));
 console.log(`\nWrote ${games.length} games to ${OUT}`);

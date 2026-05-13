@@ -1120,7 +1120,15 @@ Promise.all([
   fetch('games.json').then(r => r.json()),
   fetch('mechanics.json').then(r => r.json()).catch(() => []),
   fetch('categories.json').then(r => r.json()).catch(() => []),
-]).then(([games, mechanics, categories]) => {
+]).then(([raw, mechanics, categories]) => {
+  // games.json is either { lastUpdated, games } or a plain array (legacy)
+  const games = Array.isArray(raw) ? raw : raw.games;
+  const lastUpdated = Array.isArray(raw) ? null : raw.lastUpdated;
+  if (lastUpdated) {
+    const d = new Date(lastUpdated);
+    updatedEl.textContent = `Updated ${d.toLocaleDateString()} ${d.toLocaleTimeString()}.`;
+  }
+
   MECHANICS  = mechanics;
   CATEGORIES = categories;
 
