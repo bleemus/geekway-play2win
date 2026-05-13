@@ -24,7 +24,17 @@ npm run dev            # http://localhost:3000
 
 ## Refreshing the data
 
-### 1. Base stats from BGG CSV
+### From the BGG API (recommended)
+
+Fetches the geeklist and all game details directly from the BGG XML API2 in one step:
+
+```bash
+npm run refresh:api -- <geeklist-id>
+```
+
+Requires a `BGG_API_TOKEN` in `.env.local` (see `.env.local.example`). The script batch-fetches game details with stats, player-count polls, ranks, mechanics, categories, families, designers, and more. Handles BGG rate-limiting and retry automatically.
+
+### From a BGG CSV export (alternative)
 
 Export the geeklist as CSV from BGG (e.g. with [BGG1Tool](https://boardgamegeek.com/wiki/page/BGG1Tool)) and run:
 
@@ -32,16 +42,7 @@ Export the geeklist as CSV from BGG (e.g. with [BGG1Tool](https://boardgamegeek.
 npm run refresh -- /path/to/export.csv
 ```
 
-This regenerates `public/games.json` with base stats (player counts, playtime, ratings, poll data).
-
-### 2. Enriched data from the BGG API
-
-```bash
-node scripts/enrich-from-bgg.js             # fetch + merge (slow — rate-limited)
-node scripts/enrich-from-bgg.js --merge-only  # skip fetching, rebuild from cache
-```
-
-This adds sub-category ranks, mechanics, categories, thumbnail URLs, designers, year, and age rating. API responses are cached in `scripts/.bgg-cache/` so the script can be interrupted and resumed. Also produces `public/mechanics.json` and `public/categories.json`.
+This regenerates `public/games.json` with base stats (player counts, playtime, ratings, poll data) but does not include enriched fields like mechanics, categories, or sub-ranks.
 
 Commit + push (CI deploy) or `npm run deploy` to update the live site.
 
@@ -59,7 +60,7 @@ A workflow file already lives at `.github/workflows/azure-static-web-apps.yml`. 
 
 Useful if you don't want to use CI/CD or want a quick push without committing.
 
-1. Copy `.env.local.example` to `.env.local` and paste your deployment token after `SWA_CLI_DEPLOYMENT_TOKEN=`.
+1. Copy `.env.local.example` to `.env.local` and fill in your tokens (`SWA_CLI_DEPLOYMENT_TOKEN`, `BGG_API_TOKEN`).
 2. `npm run deploy` — the script sources `.env.local` and runs `swa deploy public --env production`.
 
 `.env.local` is gitignored.
@@ -79,12 +80,13 @@ public/                                  what gets deployed
   icon.svg / icon-192.png / icon-512.png app icons
   staticwebapp.config.json               Azure SWA routing/headers
 scripts/
-  enrich-from-bgg.js                     BGG API enrichment (ranks, mechanics, etc.)
+  enrich-from-bgg.js                     legacy BGG API enrichment (ranks, mechanics, etc.)
   .bgg-cache/                            per-game API response cache (gitignored)
-parse-bgg-csv.mjs                        BGG CSV → games.json (base stats)
+fetch-bgg-api.mjs                        BGG XML API2 → games.json (all data in one step)
+parse-bgg-csv.mjs                        BGG CSV → games.json (base stats only)
 .github/workflows/
   azure-static-web-apps.yml              CI deploy on push to main
-.env.local.example                       template for the SWA CLI token
+.env.local.example                       template for SWA CLI + BGG API tokens
 CLAUDE.md                                project context for Claude Code
 ```
 
