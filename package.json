@@ -10,6 +10,7 @@
   "scripts": {
     "dev": "serve public -p 3000",
     "refresh": "node parse-bgg-csv.mjs",
+    "refresh:api": "set -a && . ./.env.local && set +a && node fetch-bgg-api.mjs",
     "deploy": "set -a && . ./.env.local && set +a && swa deploy public --env production --api-language node --api-version 20 --deployment-token \"$SWA_CLI_DEPLOYMENT_TOKEN\""
   },
   "devDependencies": {
