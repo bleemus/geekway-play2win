@@ -24,25 +24,13 @@ npm run dev            # http://localhost:3000
 
 ## Refreshing the data
 
-### From the BGG API (recommended)
-
-Fetches the geeklist and all game details directly from the BGG XML API2 in one step:
+Fetches the geeklist and all game details directly from the BGG XML API2:
 
 ```bash
-npm run refresh:api -- <geeklist-id>
+npm run refresh -- <geeklist-id>
 ```
 
 Requires a `BGG_API_TOKEN` in `.env.local` (see `.env.local.example`). The script batch-fetches game details with stats, player-count polls, ranks, mechanics, categories, families, designers, and more. Handles BGG rate-limiting and retry automatically.
-
-### From a BGG CSV export (alternative)
-
-Export the geeklist as CSV from BGG (e.g. with [BGG1Tool](https://boardgamegeek.com/wiki/page/BGG1Tool)) and run:
-
-```bash
-npm run refresh -- /path/to/export.csv
-```
-
-This regenerates `public/games.json` with base stats (player counts, playtime, ratings, poll data) but does not include enriched fields like mechanics, categories, or sub-ranks.
 
 Commit + push (CI deploy) or `npm run deploy` to update the live site.
 
@@ -79,11 +67,7 @@ public/                                  what gets deployed
   manifest.json                          PWA web app manifest
   icon.svg / icon-192.png / icon-512.png app icons
   staticwebapp.config.json               Azure SWA routing/headers
-scripts/
-  enrich-from-bgg.js                     legacy BGG API enrichment (ranks, mechanics, etc.)
-  .bgg-cache/                            per-game API response cache (gitignored)
-fetch-bgg-api.mjs                        BGG XML API2 → games.json (all data in one step)
-parse-bgg-csv.mjs                        BGG CSV → games.json (base stats only)
+fetch-bgg-api.mjs                        BGG XML API2 → games.json
 .github/workflows/
   azure-static-web-apps.yml              CI deploy on push to main
 .env.local.example                       template for SWA CLI + BGG API tokens
@@ -120,7 +104,7 @@ CLAUDE.md                                project context for Claude Code
 }
 ```
 
-`bestPlayers` is always a subset of `recommendedPlayers` — a count is "best" only if the BGG community-poll winner for that count was "Best", and a count is "recommended" if the winner was either "Best" or "Recommended". `geekRating` is `0` for games BGG hasn't issued a Bayesian rating for yet. The enriched fields (`bggRank`, `subRanks`, `mechanics`, etc.) are added by `scripts/enrich-from-bgg.js` and absent if the enrichment script hasn't been run.
+`bestPlayers` is always a subset of `recommendedPlayers` — a count is "best" only if the BGG community-poll winner for that count was "Best", and a count is "recommended" if the winner was either "Best" or "Recommended". `geekRating` is `0` for games BGG hasn't issued a Bayesian rating for yet. All fields are populated by `fetch-bgg-api.mjs` in a single pass.
 
 ## License
 

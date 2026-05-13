@@ -14,7 +14,6 @@ No build step. `public/` is the deploy artifact.
 - `public/styles.css` — all styles, light/dark via `prefers-color-scheme` plus a manual override
 - `public/games.json` — game data (regenerated via `npm run refresh`)
 - `public/staticwebapp.config.json` — Azure SWA routing/headers (lives at the SWA app root, which is `public/`)
-- `parse-bgg-csv.mjs` — converts a BGG geeklist CSV export into `public/games.json`
 - `fetch-bgg-api.mjs` — fetches game data from the BGG XML API2 and writes `public/games.json`
 - `.github/workflows/azure-static-web-apps.yml` — auto-deploy on push to `main` (CI path)
 - `.env.local.example` — template for the SWA CLI deployment token and BGG API token
@@ -24,8 +23,7 @@ No build step. `public/` is the deploy artifact.
 ```bash
 npm install                     # one time, installs serve + swa-cli
 npm run dev                     # serve public/ on http://localhost:3000
-npm run refresh -- <csv-path>   # rebuild games.json from a BGG CSV export
-npm run refresh:api -- <geeklist-id>  # rebuild games.json from BGG XML API2 (needs BGG_API_TOKEN in .env.local)
+npm run refresh -- <geeklist-id> # rebuild games.json from BGG XML API2 (needs BGG_API_TOKEN in .env.local)
 npm run deploy                  # one-shot SWA CLI deploy (sources .env.local)
 ```
 
@@ -68,14 +66,10 @@ The runtime adds a derived `hybridRating = (avgRating + geekRating) / 2` after f
 `fetch-bgg-api.mjs` fetches game data directly from the BGG XML API2. It requires a `BGG_API_TOKEN` bearer token in `.env.local` (or the environment). Usage:
 
 ```bash
-npm run refresh:api -- 358871
+npm run refresh -- 358871
 ```
 
-The script fetches the geeklist to get game IDs, then batch-fetches `/xmlapi2/thing?id=...&stats=1` (20 per request) with polite rate-limiting. It handles BGG 202 (queued) and 429 (rate-limited) responses with automatic retries. Outputs the same `games.json` shape as the CSV parser, plus additional fields (description, thumbnail, image, mechanics, categories, families, designers, bggRank, subRanks, yearPublished, minAge).
-
-## Source CSV columns
-
-The refresh script expects a CSV from a BGG geeklist export (e.g. produced by [BGG1Tool](https://boardgamegeek.com/wiki/page/BGG1Tool)). Required columns: `id`, `name`, `minplayers`, `maxplayers`, `playingtime`, `minplaytime`, `maxplaytime`, `average`, `bayesaverage`, `averageweight`, `usersrated`, and `1player` through `20player` (poll values: `B`/`R`/`N`).
+The script fetches the geeklist to get game IDs, then batch-fetches `/xmlapi2/thing?id=...&stats=1` (20 per request) with polite rate-limiting. It handles BGG 202 (queued) and 429 (rate-limited) responses with automatic retries.
 
 ## Conventions
 
