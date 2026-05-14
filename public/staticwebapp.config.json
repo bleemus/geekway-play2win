@@ -2,6 +2,13 @@
   "navigationFallback": {
     "rewrite": "/index.html"
   },
+  "routes": [
+    { "route": "/index.html",      "headers": { "Cache-Control": "no-cache" } },
+    { "route": "/games.json",      "headers": { "Cache-Control": "no-cache" } },
+    { "route": "/mechanics.json",  "headers": { "Cache-Control": "no-cache" } },
+    { "route": "/categories.json", "headers": { "Cache-Control": "no-cache" } },
+    { "route": "/sw.js",           "headers": { "Cache-Control": "no-cache" } }
+  ],
   "globalHeaders": {
     "Cache-Control": "public, max-age=3600"
   },

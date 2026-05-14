@@ -80,6 +80,7 @@ const sortDirBtn   = document.getElementById('sortDirBtn');
 const pickBtn      = document.getElementById('pickBtn');
 const themeBtn     = document.getElementById('themeBtn');
 const installBtn   = document.getElementById('installBtn');
+const refreshBtn   = document.getElementById('refreshBtn');
 const updatedEl    = document.getElementById('updated');
 
 // multi-select elements
@@ -1088,6 +1089,22 @@ installBtn.addEventListener('click', async () => {
 window.addEventListener('appinstalled', () => {
   installBtn.hidden = true;
   deferredInstallPrompt = null;
+});
+
+refreshBtn.addEventListener('click', async () => {
+  refreshBtn.disabled = true;
+  try {
+    if ('caches' in window) {
+      const keys = await caches.keys();
+      await Promise.all(keys.map(k => caches.delete(k)));
+    }
+    if ('serviceWorker' in navigator) {
+      const regs = await navigator.serviceWorker.getRegistrations();
+      await Promise.all(regs.map(r => r.unregister()));
+    }
+  } finally {
+    location.reload();
+  }
 });
 
 // ─── Keyboard shortcuts ───────────────────────────────────────────────────────
