@@ -1,0 +1,9 @@
+node_modules
+.env.local
+.env*.local
+.git
+.github
+*.md
+LICENSE
+fetch-bgg-api.mjs
+package*.json
